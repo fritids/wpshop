@@ -1662,7 +1662,7 @@ ob_end_clean();
 				$input_def['value'] = !empty($attribute_value) && is_string($attribute_value) ? $attribute_value : '';
 			}
 			$input_more_class .= ' wpshop_input_datetime ';
-			$field_script = '<script type="text/javascript" >
+			$field_script = '<script type="text/javascript" ><!--//--><![CDATA[//><!--
 	jQuery(document).ready(function(){
 		wpshop("#' . $input_def['id'] . '").datepicker();
 		wpshop("#' . $input_def['id'] . '").datepicker("option", "dateFormat", "yy-mm-dd");
@@ -1719,7 +1719,7 @@ ob_end_clean();
 
 			$field_script .= '
 	});
-</script>';
+//--><!]]></script>';
 			$input_def['options'] .= $field_script;
 		}
 		if ( in_array($attribute->backend_input, array('multiple-select', 'select', 'radio', 'checkbox'))) {

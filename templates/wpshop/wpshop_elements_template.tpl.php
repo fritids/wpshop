@@ -36,7 +36,7 @@ ob_end_clean();
 /*	"Go to product configuration" button	|			Bouton de configuration du produit si il contient des declinaisons */
 ob_start();
 ?>
-<a href="{WPSHOP_PRODUCT_PERMALINK}" title="{WPSHOP_PRODUCT_TITLE}" itemprop="availability" content="to_configure" class="wpshop_add_to_cart_button wpshop_products_listing_bton_panier_active" ><?php _e('Configure product', 'wpshop'); ?></a><?php
+<a href="{WPSHOP_PRODUCT_PERMALINK}" title="{WPSHOP_PRODUCT_TITLE}" id="wpshop_add_to_cart_{WPSHOP_PRODUCT_ID}" itemprop="availability" content="to_configure" class="wpshop_configure_product_button wpshop_products_listing_bton_panier_active" ><?php _e('Configure product', 'wpshop'); ?></a><?php
 $tpl_element['configure_product_button'] = ob_get_contents();
 ob_end_clean();
 
@@ -751,10 +751,59 @@ ob_end_clean();
  *
  */
 ob_start();
-?><h2>{WPSHOP_CHECKOUT_SUMMARY_TITLE}</h2>{WPSHOP_CHECKOUT_CUSTOMER_ADDRESSES_LIST}{WPSHOP_CHECKOUT_CART_CONTENT}{WPSHOP_CHECKOUT_TERM_OF_SALES}{WPSHOP_CHECKOUT_PAYMENT_METHODS}<?php
+?><form method="post" name="checkoutForm" action="<?php echo get_permalink(get_option('wpshop_checkout_page_id')); ?>" >
+	<h2>{WPSHOP_CHECKOUT_SUMMARY_TITLE}</h2>
+	{WPSHOP_CHECKOUT_CUSTOMER_ADDRESSES_LIST}
+	{WPSHOP_CHECKOUT_CART_CONTENT}
+	{WPSHOP_CHECKOUT_TERM_OF_SALES}
+	<div>
+		<?php _e('Comments about the order','wpshop'); ?>
+		<textarea name="order_comments"></textarea>
+	</div>
+	{WPSHOP_CHECKOUT_PAYMENT_METHODS}
+	<div{WPSHOP_CHECKOUT_PAYMENT_BUTTONS_CONTAINER}>
+		{WPSHOP_CHECKOUT_PAYMENT_BUTTONS}
+	</div>
+</form><?php
 $tpl_element['wpshop_checkout_page'] = ob_get_contents();
 ob_end_clean();
 
+/**
+ * Checkout page validation button
+ */
+ob_start();
+?><input type="submit" name="takeOrder" value="{WPSHOP_CHECKOUT_PAGE_VALIDATION_BUTTON_TEXT}" /><?php
+$tpl_element['wpshop_checkout_page_validation_button'] = ob_get_contents();
+ob_end_clean();
+
+/**
+ * Payment method bloc
+ */
+ob_start();
+?><table class="blockPayment{WPSHOP_CHECKOUT_PAYMENT_METHOD_STATE_CLASS}">
+	<tr>
+		<td class="paymentInput rounded-left"><input type="radio" name="modeDePaiement"{WPSHOP_CHECKOUT_PAYMENT_METHOD_INPUT_STATE} value="{WPSHOP_CHECKOUT_PAYMENT_METHOD_IDENTIFIER}" /></td>
+		<td class="paymentImg"><img src="<?php echo WPSHOP_TEMPLATES_URL; ?>{WPSHOP_CHECKOUT_PAYMENT_METHOD_ICON}" alt="{WPSHOP_CHECKOUT_PAYMENT_METHOD_NAME}" title="<?php echo sprintf(__('Pay by %s', 'wpshop'), '{WPSHOP_CHECKOUT_PAYMENT_METHOD_NAME}'); ?>" /></td>
+		<td class="paymentName">{WPSHOP_CHECKOUT_PAYMENT_METHOD_NAME}</td>
+		<td class="last rounded-right">{WPSHOP_CHECKOUT_PAYMENT_METHOD_EXPLANATION}</td>
+	</tr>
+</table><?php
+$tpl_element['wpshop_checkout_page_payment_method_bloc'] = ob_get_contents();
+ob_end_clean();
+
+/**
+ * Check method confiramtion message
+ */
+ob_start();
+?><p><?php _e('Thank you ! Your order has been placed and you will receive a confirmation email shortly.', 'wpshop'); ?></p>
+<p><?php _e('You have to send the check with the good amount to the adress :', 'wpshop'); ?></p>
+<p>{WPSHOP_CHECK_CONFIRMATION_MESSAGE_COMPANY_NAME}<br/>
+{WPSHOP_CHECK_CONFIRMATION_MESSAGE_COMPANY_STREET}<br/>
+{WPSHOP_CHECK_CONFIRMATION_MESSAGE_COMPANY_POSTCODE}, {WPSHOP_CHECK_CONFIRMATION_MESSAGE_COMPANY_CITY}<br/>
+{WPSHOP_CHECK_CONFIRMATION_MESSAGE_COMPANY_COUNTRY}</p>
+<p><?php _e('Your order will be shipped upon receipt of the check.', 'wpshop'); ?></p><?php
+$tpl_element['wpshop_checkout_page_check_confirmation_message'] = ob_get_contents();
+ob_end_clean();
 
 
 /**

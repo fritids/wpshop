@@ -244,8 +244,9 @@ function wpshop_account_display_form() {
 							echo '<a href="' . get_permalink(get_option('wpshop_myaccount_page_id')) . (strpos(get_permalink(get_option('wpshop_myaccount_page_id')), '?')===false ? '?' : '&') . 'action=order&oid='.$_GET['oid'].'&download_invoice='.$_GET['oid'].'">'.__('Download the invoice','wpshop').'</a>';
 						}
 						else {
-							echo '<h2>'.__('Complete the order','wpshop').'</h2>';
-							echo wpshop_payment::display_payment_methods_choice_form(false, $_GET['oid']);
+
+							$available_payement_method = wpshop_payment::display_payment_methods_choice_form($_GET['oid']);
+							echo '<h2>'.__('Complete the order','wpshop').'</h2>' . $available_payement_method[0];
 						}
 					}
 					else echo __('No order', 'wpshop');
@@ -482,9 +483,6 @@ class wpshop_account {
 					AND post_parent = ' .get_current_user_id(). '', '');
 
 		$addresses = $wpdb->get_results($query);
-		if( is_page(get_option('wpshop_checkout_page_id')) ) {
-		 $addresses_list .= '<form method="post" name="checkoutForm" action="'.get_permalink(get_option('wpshop_checkout_page_id')).'">';
-		}
 
 		if( count($addresses) > 0 ) {
 			$shipping_options = get_option('wpshop_shipping_address_choice');

@@ -335,6 +335,8 @@ class wpshop_cart {
 	 */
 	function set_product_qty($product_id, $quantity) {
 
+// 		add_to_cart( $product_list, $quantity, $type );
+		//echo '<pre>';print_r($_SESSION['cart']);echo '</pre>';exit;
 		if ( !empty($_SESSION['cart']['order_items'][$product_id]) ) {
 			// Check the stock
 			$return = self::check_stock($product_id, $quantity);
@@ -355,7 +357,7 @@ class wpshop_cart {
 		else {	/* Product is nomore into cart */
 			return __('This product does not exist in the cart.', 'wpshop');
 		}
-
+//echo '<pre>';print_r($order_items);echo '</pre>';exit;
 		if (!empty($order_items)) {
 			$order = self::calcul_cart_information($order_items);
 			self::store_cart_in_session($order);

@@ -1489,6 +1489,9 @@ div.popupAlert h1 {
 	padding: 0px 6px;
 	border-right: 1px salid #CCCCCC;
 }
+.ui-dialog.wpshop_uidialog_box .ui-dialog-content .wpshop_product_variation_options label {
+	float: none !important;
+}
 /* Fin Alex	*/
 
 

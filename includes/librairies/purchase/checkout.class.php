@@ -34,69 +34,77 @@ class wpshop_checkout {
 	function __construct () {
 	}
 
-	/** Affiche le formulaire de commande
-	* @return void
-	*/
+	/**
+	 * Display checkout form
+	 *
+	 * @return boolean|string
+	 */
 	function display_form() {
 		global $wpshop, $wpshop_account, $wpshop_cart, $civility, $wpshop_signup;
 		$output = '';
 
+		/**	In case customer want to cancel order	*/
 		if ( !empty($_GET['action']) && ($_GET['action']=='cancel') ) {
-			// On vide le panier
 			$wpshop_cart->empty_cart();
-			echo __('Your order has been succesfully cancelled.', 'wpshop');
-			return false;
+
+			 return __('Your order has been succesfully cancelled.', 'wpshop');
 		}
 
-		// Si le panier n'est pas vide
+		/**	Cart is empty -> Display message*/
 		if($wpshop_cart->is_empty() && empty($_POST['order_id'])) :
 			$output .= '<p>'.__('Your cart is empty. Select product(s) before checkout.','wpshop').'</p>';
+		/**	Cart is not empty -> Check current step	*/
 		else :
-			$form_is_ok = $this->managePost();
-
-			$user_id = get_current_user_id();
-
-			// Cart type
+			/**	Check cart type for current order	*/
 			$cart_type = (!empty($_SESSION['cart']['cart_type']) && $_SESSION['cart']['cart_type']=='quotation') ? 'quotation' : 'cart';
 
-			// On r�cup�re les m�thodes de paiements disponibles
+			/**	Check action to launch relative to post nformation	*/
+			$form_is_ok = $this->managePost( $cart_type );
+
+			/**	Get available payment method	*/
 			$paymentMethod = get_option('wpshop_paymentMethod', array());
 
+			/**	Store order id into Session	*/
 			$_SESSION['order_id'] = !empty($_POST['order_id']) ? $_POST['order_id'] : (!empty($_SESSION['order_id']) ? $_SESSION['order_id'] : 0);
 
+			/**	if user ask a quotation	*/
 			if ( $form_is_ok && isset($_POST['takeOrder']) && $cart_type=='quotation') {
 				$output .= '<p>'.__('Thank you ! Your quotation has been sent. We will respond to you as soon as possible.', 'wpshop').'</p>';
-				// On vide le panier
+
+				/**	Empty customer cart	*/
 				$wpshop_cart->empty_cart();
 			}
-			// PAYPAL
+			/**	If user want to pay with paypal	*/
 			elseif($form_is_ok && !empty($paymentMethod['paypal']) && isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='paypal') {
 				wpshop_paypal::display_form($_SESSION['order_id']);
-				// On vide le panier
+
+				/**	Empty customer cart	*/
 				$wpshop_cart->empty_cart();
 			}
-			// CHECK
+			/**	If user want to pay by check	*/
 			elseif($form_is_ok && !empty($paymentMethod['checks']) && isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='check') {
 				// On recupere les informations de paiements par cheque
 				$paymentInfo = get_option('wpshop_paymentAddress', true);
-				$output .= '<p>'.__('Thank you ! Your order has been placed and you will receive a confirmation email shortly.', 'wpshop').'</p>';
-				$output .= '<p>'.__('You have to send the check with the good amount to the adress :', 'wpshop').'</p>';
-				$output .= $paymentInfo['company_name'].'<br />';
-				$output .= $paymentInfo['company_street'].'<br />';
-				$output .= $paymentInfo['company_postcode'].', '.$paymentInfo['company_city'].'<br />';
-				$output .= $paymentInfo['company_country'].'<br /><br />';
-				$output .= '<p>'.__('Your order will be shipped upon receipt of the check.', 'wpshop').'</p>';
+				$tpl_component = array();
+				if ( !empty($paymentInfo) ) {
+					foreach ( $paymentInfo as $key => $value) {
+						$tpl_component['CHECK_CONFIRMATION_MESSAGE_' . strtoupper($key)] = $value;
+					}
+				}
+				$output .= wpshop_display::display_template_element('wpshop_checkout_page_check_confirmation_message', $tpl_component);
 
-				// On vide le panier
+				/**	Empty customer cart	*/
 				$wpshop_cart->empty_cart();
 			}
-			// CIC
-			elseif(/*!empty($paymentMethod['cic']) && */ $form_is_ok && isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='cic') {
+			/**	If Credit card by CIC is actived And the user selected this payment method	*/
+			elseif($form_is_ok && isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='cic') {
 				wpshop_CIC::display_form($_SESSION['order_id']);
-				// On vide le panier
+
+				/**	Empty customer cart	*/
 				$wpshop_cart->empty_cart();
 			}
 			else {
+				$user_id = get_current_user_id();
 				if ($user_id) {
 					$tpl_component = array();
 
@@ -118,7 +126,18 @@ class wpshop_checkout {
 					}
 
 					/** Display available payment methods	*/
-					$tpl_component['CHECKOUT_PAYMENT_METHODS'] = wpshop_payment::display_payment_methods_choice_form(true);
+					$available_payement_method = wpshop_payment::display_payment_methods_choice_form(0, $cart_type);
+					$tpl_component['CHECKOUT_PAYMENT_METHODS'] = $available_payement_method[0];
+
+					/**	Display order validation button in case payment methods are available	*/
+					$tpl_component['CHECKOUT_PAYMENT_BUTTONS_CONTAINER'] = ' class="wpshop_checkout_button_container" ';
+					if(!empty($available_payement_method[1]['paypal']) || !empty($available_payement_method[1]['checks']) || WPSHOP_PAYMENT_METHOD_CIC || !empty($available_payement_method[1]['cic']) || ($cart_type == 'quotation')) {
+						$tpl_component['CHECKOUT_PAYMENT_BUTTONS'] = wpshop_display::display_template_element('wpshop_checkout_page_validation_button', array('CHECKOUT_PAGE_VALIDATION_BUTTON_TEXT' => ($cart_type=='quotation') ? __('Ask the quotation', 'wpshop') : __('Order', 'wpshop')));
+					}
+					else{
+						$tpl_component['CHECKOUT_PAYMENT_BUTTONS_CONTAINER'] = str_replace('_container"', '_container wpshop_checkout_button_container_no_method"', $tpl_component['CHECKOUT_PAYMENT_BUTTONS_CONTAINER']);
+						$tpl_component['CHECKOUT_PAYMENT_BUTTONS'] = __('It is impossible to order for the moment','wpshop');
+					}
 
 					$output .= wpshop_display::display_template_element('wpshop_checkout_page', $tpl_component);
 					unset($tpl_component);
@@ -142,52 +161,47 @@ class wpshop_checkout {
 		return $output;
 	}
 
-	/** Traite les donn�es re�us en POST
-	 * @return void
-	*/
-	function managePost() {
+	/**
+	 * Validate an order. When customer validate checkout page this function do treatment for payment method
+	 *
+	 * @return boolean False if errors occured|True if all is OK
+	 */
+	function managePost( $cart_type ) {
+		global $wpshop;
 
-		global $wpshop, $wpshop_account;
-		// Cart type
-		$cart_type = (!empty($_SESSION['cart']['cart_type']) && $_SESSION['cart']['cart_type']=='quotation') ? 'quotation' : 'cart';
-
-		// Confirmation (derni�re �tape)
+		/**	If the user validate the checkout page	*/
 		if(isset($_POST['takeOrder'])) {
-			// Test if a shipping and a billing address was choosen
+			/** Billing adress if mandatory	*/
 			if ( !isset($_POST['billing_address']) ) {
 				$wpshop->add_error(__('You must choose a billing address.', 'wpshop'));
 			}
 			else {
-				// If a order_id is given, meaning that the order is already created and the user wants to process to a new payment
+				/**	 If a order_id is given, meaning that the order is already created and the user wants to process to a new payment	*/
 				$order_id = !empty($_POST['order_id']) && is_numeric($_POST['order_id']) ? $_POST['order_id'] : 0;
 
+				/**	User ask a quotation for its order	*/
 				if ($cart_type=='quotation') {
 					$this->process_checkout($paymentMethod='quotation', $order_id);
 				}
-				// Paypal
-				elseif(isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='paypal') {
-					$this->process_checkout($paymentMethod='paypal', $order_id);
+				/**	Customer want to pay its order with one of available payment method 	*/
+				elseif(isset($_POST['modeDePaiement']) && in_array( $_POST['modeDePaiement'], array('paypal', 'check', 'cic') )) {
+					$this->process_checkout($_POST['modeDePaiement'], $order_id);
 				}
-				// Ch�que
-				elseif(isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='check') {
-					$this->process_checkout($paymentMethod='check', $order_id);
-				}
-				// Ch�que
-				elseif(isset($_POST['modeDePaiement']) && $_POST['modeDePaiement']=='cic') {
-					$this->process_checkout($paymentMethod='cic', $order_id);
-				}
+				/**	Customer does not select any payment method for its order and it's not a quotation -> Display a error message to choose a payment method	*/
 				else $wpshop->add_error(__('You have to choose a payment method to continue.', 'wpshop'));
 			}
 		}
 		else {
 			$this->div_login = $this->div_infos_login = 'display:none';
 		}
-		// Si il y a des erreurs, on les affiche seulement si le panier correspond a une commande
-		if($cart_type=='cart' && $wpshop->error_count()>0) {
+
+		/**	Display errors only in case the current cart is not a quotation	*/
+		if ( ($cart_type == 'cart') && ($wpshop->error_count() > 0)) {
 			echo $wpshop->show_messages();
 			return false;
 		}
-		else return true;
+
+		return true;
 	}
 
 

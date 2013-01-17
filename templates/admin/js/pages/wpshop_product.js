@@ -173,7 +173,11 @@
 		jQuery(".wpshop_variation_def_details").stop(true).slideUp(200);
 		jQuery(".wpshop_variation_metabox").removeClass('wpshop_current_variation');
 		jQuery("#wpshop_variation_def_details_" + current_variation_id).stop(true).slideToggle(200);
-		jQuery("#wpshop_variation_def_details_" + current_variation_id).parent().addClass('wpshop_current_variation');
+		setTimeout(function(){
+			if ( jQuery("#wpshop_variation_def_details_" + current_variation_id).is(":visible") ) {
+				jQuery("#wpshop_variation_def_details_" + current_variation_id).parent().addClass('wpshop_current_variation');
+			}
+		}, 500);
 	});
 
 	/* Select / Deselect all existing variation	*/

@@ -354,6 +354,13 @@ ob_start();
 				<li class="wpshop_product_variation_option_price_behaviour_choices_item wpshop_product_variation_option_price_behaviour_choices_item_replacement" ><input type="radio"{WPSHOP_ADMIN_VARIATION_OPTIONS_SELECTED_BEHAVIOUR_REPLACEMENT} name="<?php echo WPSHOP_NEWTYPE_IDENTIFIER_PRODUCT_VARIATION; ?>[options][price_behaviour][]" id="wpshop_product_variation_price_behaviour_replacement" value="replacement"/><label for="wpshop_product_variation_price_behaviour_replacement" ><?php _e('Replace the product price with variation prices', 'wpshop'); ?></label><div class="cls"></div></li>
 			</ul>
 		</li>
+		<li class="wpshop_product_variation_option wpshop_product_variation_option_price_display" >
+			<h4><?php _e('Choose variations prices display', 'wpshop') ?></h4>
+			<ul class="wpshop_product_variation_option_price_display_choices" >
+				<li class="wpshop_product_variation_option_price_display_item wpshop_product_variation_option_price_display_item_text_from" ><input type="checkbox"{WPSHOP_ADMIN_VARIATION_OPTIONS_SELECTED_PRICE_DISPLAY_TEXT_FROM} name="<?php echo WPSHOP_NEWTYPE_IDENTIFIER_PRODUCT_VARIATION; ?>[options][price_display][text_from]" id="wpshop_product_variation_price_display_from_text" /> <label for="wpshop_product_variation_price_display_from_text" class="alignright" ><?php _e('Display "price from" before basic price of product', 'wpshop'); ?></label><div class="cls"></div></li>
+				<li class="wpshop_product_variation_option_price_display_item wpshop_product_variation_option_price_display_item_lower_price" ><input type="checkbox"{WPSHOP_ADMIN_VARIATION_OPTIONS_SELECTED_PRICE_DISPLAY_LOWER_PRICE} name="<?php echo WPSHOP_NEWTYPE_IDENTIFIER_PRODUCT_VARIATION; ?>[options][price_display][lower_price]" id="wpshop_product_variation_price_display_lower_price" /> <label for="wpshop_product_variation_price_display_lower_price" class="alignright" ><?php _e('Display the lowest price of variation', 'wpshop'); ?></label><div class="cls"></div></li>
+			</ul>
+		</li>
 		{WPSHOP_ADMIN_MORE_OPTIONS_FOR_VARIATIONS}
 	</ul>
 </form>
